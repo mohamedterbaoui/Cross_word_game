@@ -32,15 +32,16 @@ cursor.execute("""
     )
 """)
 
-# 3. Players table : 
-# id | tagname | password | score | games_played | last_login
+# 3. Players table :
+# id | username | password | games_played | games_won | score | last_login
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS players (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        tagname VARCHAR(255) UNIQUE NOT NULL,
+        username VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
-        score INT DEFAULT 0,
         games_played INT DEFAULT 0,
+        games_won INT DEFAULT 0,
+        score INT DEFAULT 0,
         last_login TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
 """)

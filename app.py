@@ -18,7 +18,29 @@ def get_db_connection():
 # Home Route
 @app.route("/")
 def home():
-    return "Hello, Flask!"
+    return "Hello, Cross Word!"
+
+# A : Gestion des joueurs
+@app.route("/gamers/<joueur>")
+def show_player_stats(joueur):
+    db = get_db_connection()
+    cursor = db.cursor()
+
+
+    cursor.execute("SELECT tagname, games_played, games_won, score, last_login FROM players where tagname = %s", (joueur,))
+    player_info = cursor.fetchone()
+
+    player_stats = {
+        "1.username" : player_info[0],
+        "2.games_played" : player_info[1],
+        "3.games_won" : player_info[2],
+        "4.score" : player_info[3],
+        "5.last_login" : player_info[4]
+    }
+    print(player_stats)
+
+    return jsonify(player_stats)
+
 
 
 
@@ -80,7 +102,7 @@ def get_HTML_game(time, lg, hint):
         <script src="{js_url}"></script>
     </html>
     """
-    
+
     return html_content
 
 if __name__ == "__main__":
