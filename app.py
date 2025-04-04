@@ -1,5 +1,6 @@
 from flask import Flask
 from flask import jsonify
+from flask import url_for
 import mysql.connector
 
 app = Flask(__name__)
@@ -53,7 +54,34 @@ def get_words_collection(nb, from_index):
     db.close()
     return jsonify(arrayOfObjects)
 
-# D : 
+# D : Page web du jeu
+@app.route("/jeu/word/", defaults={"time":60, "lg":"en", "hint":10})
+def get_HTML_game(time, lg, hint):
+
+    # link of the css file
+    css_url = url_for('static', filename='styles.css')
+
+    # link of the js file
+    js_url = url_for('static', filename='script.js')
+
+    html_content = f"""
+    <html>
+        <head>
+            <title>Game</title>
+            <link rel="stylesheet" href="{css_url}">
+        </head>
+        <body>
+            <h1 class="header">Guess the Word Game</h1>
+            <p>Language: {lg}</p>
+            <p>Time: {time} seconds</p>
+            <p>Hint Interval: {hint} seconds</p>
+            <!-- Other game HTML and JS code -->
+        </body>
+        <script src="{js_url}"></script>
+    </html>
+    """
+    
+    return html_content
 
 if __name__ == "__main__":
     app.run(debug=True)
