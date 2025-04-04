@@ -4,15 +4,15 @@ import mysql.connector
 
 app = Flask(__name__)
 
-# Connecting to the database
-db = mysql.connector.connect(
-    host = "localhost",
-    user = "mohamed",
-    password = "mypassword",
-    database = "cross_word"
-)
-
-cursor = db.cursor()
+# Function to get a new connection to the database
+def get_db_connection():
+    connection = mysql.connector.connect(
+        host="localhost",
+        user="mohamed",
+        password="mypassword",
+        database="cross_word"
+    )
+    return connection
 
 # Home Route
 @app.route("/")
@@ -26,6 +26,9 @@ def home():
 @app.route("/word/<int:nb>", defaults={"from_index":1})
 @app.route("/word/<int:nb>/<int:from_index>")
 def get_words_collection(nb, from_index):
+    db = get_db_connection()
+    cursor = db.cursor()
+
     offset = from_index - 1
     cursor.execute("SELECT * FROM words LIMIT %s OFFSET %s", (nb, offset))
     result = cursor.fetchall()
@@ -40,21 +43,17 @@ def get_words_collection(nb, from_index):
 
         word = {
             "Id": res[0],
-            "Language": res[1],
-            "Source": res[2],
             "Word": res[3],
             "definitions": definition_list
         }
         
         arrayOfObjects.append(word)
 
-    return jsonify(arrayOfObjects)
-
-# Closing the connection when the app is shut down
-@app.teardown_appcontext
-def close_connection(exception):
     cursor.close()
     db.close()
+    return jsonify(arrayOfObjects)
+
+# D : 
 
 if __name__ == "__main__":
     app.run(debug=True)
