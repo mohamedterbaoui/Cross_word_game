@@ -1,3 +1,120 @@
-h1 {
-  color: red;
+body {
+  font-size: 16px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+  width: 45%;
+  margin: auto;
+  margin-top: 200px;
+}
+
+.control-btns {
+  display: flex;
+  justify-content: center;
+}
+
+#play {
+  all: unset;
+  background-color: rgb(46, 247, 146);
+  padding: 10px 20px;
+  border: 2px solid rgba(0, 0, 0, 0.351);
+  cursor: pointer;
+  width: 200px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 700;
+  border-radius: 15px;
+  color: rgb(51, 51, 51);
+}
+
+#play:hover {
+  background-color: rgb(19, 190, 105);
+}
+
+.game-window {
+  border: 2px solid grey;
+  margin-top: 30px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  border-radius: 15px;
+  background-color: rgb(199, 241, 249);
+}
+
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile {
+  display: flex;
+  gap: 5px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.total-score {
+  display: flex;
+  gap: 5px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.score {
+  display: flex;
+  gap: 5px;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.score > div:first-of-type {
+  padding: 3px 10px;
+  border: 1px solid grey;
+}
+
+.word {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+#answer {
+  padding: 6px 60px;
+  border: 1px solid gray;
+}
+
+.remaining-time {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  font-weight: 700;
+}
+
+.hints {
+  padding: 20px 20px 20px 0;
+  border: 1px solid grey;
+}
+
+.hints ul {
+  list-style: square;
 }

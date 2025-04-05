@@ -8,10 +8,6 @@ import hashlib, uuid
 
 app = Flask(__name__)
 
-# TODO : change the column name in the SELECTS replace (tagname) -> (username)
-
-# TODO : Maybe add a permission or role to the players table or an admin table?
-
 # Dictionary to store active sessions 
 sessions = {}
 
@@ -42,8 +38,8 @@ def show_player_stats(joueur):
     db = get_db_connection()
     cursor = db.cursor()
 
-    cursor.execute("SELECT tagname, games_played, games_won, score, last_login " \
-                    "FROM players where tagname = %s", (joueur,))
+    cursor.execute("SELECT username, games_played, games_won, score, last_login " \
+                    "FROM players where username = %s", (joueur,))
     player_info = cursor.fetchone()
 
     if (player_info):
@@ -61,14 +57,14 @@ def show_player_stats(joueur):
     db.close()
     return jsonify(player_stats)
 
-# 2 : Adding a player to the database
+# 2 : Signup of a new player
 @app.route("/gamers/add/<joueur>/<pwd>")
 def add_player(joueur, pwd):
     db = get_db_connection()
     cursor = db.cursor()
 
     # Checking if player already exists
-    cursor.execute("SELECT tagname FROM players where tagname = %s", (joueur, ))
+    cursor.execute("SELECT username FROM players where username = %s", (joueur, ))
     result = cursor.fetchone()
 
     if result:
@@ -81,7 +77,7 @@ def add_player(joueur, pwd):
 
     hashed_password = hashlib.sha256(pwd.encode()).hexdigest()
 
-    cursor.execute("INSERT INTO players (tagname, password) " \
+    cursor.execute("INSERT INTO players (username, password) " \
     "VALUES (%s, %s)", (joueur, hashed_password))
 
     db.commit()
@@ -92,7 +88,6 @@ def add_player(joueur, pwd):
     # Generate random unique token
     token = str(uuid.uuid4())
     sessions[token] = {"id": player_id, "username":joueur}
-
 
     cursor.close()
     db.close()
@@ -115,7 +110,7 @@ def login(joueur, pwd):
 
         hashed_pwd = hashlib.sha256(pwd.encode()).hexdigest()
 
-        cursor.execute("SELECT id FROM players WHERE tagname = %s AND password = %s", (joueur, hashed_pwd))
+        cursor.execute("SELECT id FROM players WHERE username = %s AND password = %s", (joueur, hashed_pwd))
         result = cursor.fetchone()
 
         if not result:
@@ -155,7 +150,7 @@ def list_top_players(nb):
     db = get_db_connection()
     cursor = db.cursor()
 
-    cursor.execute("SELECT tagname, score FROM players ORDER BY score DESC LIMIT %s", (nb,))
+    cursor.execute("SELECT username, score FROM players ORDER BY score DESC LIMIT %s", (nb,))
     result = cursor.fetchall()
 
     scores = []
@@ -178,7 +173,7 @@ def delete_player(joueur):
     cursor = db.cursor()
 
     # Delete player
-    cursor.execute("DELETE FROM players WHERE tagname = %s", (joueur, ))
+    cursor.execute("DELETE FROM players WHERE username = %s", (joueur, ))
 
     db.commit()
 
@@ -226,17 +221,18 @@ def get_words_collection(nb, from_index):
     arrayOfWords = []
 
     for res in result:
-        cursor.execute("SELECT definition FROM definitions WHERE word_id = %s", (res[0],))
+        cursor.execute("SELECT definition, source FROM definitions WHERE word_id = %s", (res[0],))
         definitions = cursor.fetchall()
 
         definition_list = [definition[0] for definition in definitions]
+        sources_list = [definition[1] for definition in definitions]
 
         word = {
             "Id": res[0],
             "Lg": res[1],
-            "source": res[2],
-            "Word": res[3],
-            "definitions": definition_list
+            "Word": res[2],
+            "definitions": definition_list,
+            "source": sources_list
         }
         
         arrayOfWords.append(word)
@@ -248,6 +244,9 @@ def get_words_collection(nb, from_index):
 # D : Page web
 # 1 : Display HTML Game
 @app.route("/jeu/word/", defaults={"time":60, "lg":"en", "hint":10})
+@app.route("/jeu/word/<int:time>", defaults={"lg":"en", "hint":10})
+@app.route("/jeu/word/<int:time>/<lg>", defaults={"hint":10})
+@app.route("/jeu/word/<int:time>/<lg>/<int:hint>")
 def get_HTML_game(time, lg, hint):
 
     # link of the css file
@@ -306,16 +305,20 @@ def dispaly_definitions_datatables(step):
     rows = ""
     for word in words:
         word_definitions = ""
+        def_sources = ""
         for definition in word["definitions"]:
             word_definitions+=definition + ", "
+        for source in word["source"]:
+            def_sources+= source + ", "
+
 
         rows += f"""
         <tr>
             <td>{word["Id"]}</td>
             <td>{word["Lg"]}</td>
-            <td>{word["source"]}</td>
             <td>{word["Word"]}</td>
-            <td>{word_definitions}</td>
+            <td>{word_definitions}</td>            
+            <td>{def_sources}</td>
         </tr>
         """
     
@@ -339,9 +342,9 @@ def dispaly_definitions_datatables(step):
                 <tr>
                     <th>ID</th>
                     <th>language</th>
-                    <th>source</th>
                     <th>word</th>
                     <th>definitions</th>
+                    <th>sources</th>
                 </tr>
             </thead>
             <tbody>
