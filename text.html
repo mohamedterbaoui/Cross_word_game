@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DataTables Test</title>
+    <!-- DataTables CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.min.css"
+    />
+  </head>
+  <body>
+    <h1>DataTables Test</h1>
+
+    <!-- Sample table -->
+    <table id="definitionsTable" class="display">
+      <thead>
+        <tr>
+          <th>Word</th>
+          <th>Definition</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Test</td>
+          <td>
+            A procedure intended to establish the quality, performance, or
+            reliability of something
+          </td>
+          <td>10</td>
+        </tr>
+        <tr>
+          <td>Apple</td>
+          <td>A round fruit with red or green skin and a whitish interior</td>
+          <td>8</td>
+        </tr>
+        <tr>
+          <td>Banana</td>
+          <td>
+            A long curved fruit that grows in clusters and has soft pulpy flesh
+            and yellow skin when ripe
+          </td>
+          <td>9</td>
+        </tr>
+        <tr>
+          <td>Orange</td>
+          <td>
+            A round juicy citrus fruit with a tough bright reddish-yellow rind
+          </td>
+          <td>7</td>
+        </tr>
+        <tr>
+          <td>Grape</td>
+          <td>A small round fruit that is typically green or purple</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <td>Pineapple</td>
+          <td>
+            A large tropical fruit with a tough spiky rind and sweet flesh
+          </td>
+          <td>6</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- DataTables JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+
+    <!-- Initialize DataTable -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        new DataTable("#definitionsTable");
+      });
+    </script>
+  </body>
+</html>

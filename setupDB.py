@@ -22,6 +22,10 @@ cursor.execute("""
     )
 """)
 
+# TODO : change table language and source are linked with the definition 
+# not the word also key is word + language, 
+# since the same word in different languages is different.
+
 # 2. Definitions table : id | word_id FK | definition
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS definitions (

@@ -233,6 +233,8 @@ def get_words_collection(nb, from_index):
 
         word = {
             "Id": res[0],
+            "Lg": res[1],
+            "source": res[2],
             "Word": res[3],
             "definitions": definition_list
         }
@@ -241,9 +243,10 @@ def get_words_collection(nb, from_index):
 
     cursor.close()
     db.close()
-    return {"words": arrayOfWords }
+    return {"words": arrayOfWords}
 
-# D : Page web du jeu
+# D : Page web
+# 1 : Display HTML Game
 @app.route("/jeu/word/", defaults={"time":60, "lg":"en", "hint":10})
 def get_HTML_game(time, lg, hint):
 
@@ -271,6 +274,101 @@ def get_HTML_game(time, lg, hint):
     """
 
     return html_content
+
+# 2 : Add definition game
+@app.route("/jeu/def", defaults={"lg":"en", "time":60})
+@app.route("/jeu/def/<lg>", defaults={"time":60})
+@app.route("/jeu/def/<lg>/<int:time>")
+def add_definition_game(lg, time):
+
+    return "Hello"
+
+# 3 : Display definitions using DataTables
+@app.route("/dump", defaults={"step":10})
+@app.route("/dump/<step>")
+def dispaly_definitions_datatables(step):
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    # Get number of rows of words table
+    cursor.execute("SELECT COUNT(*) FROM words")
+    nb_words = cursor.fetchall()[0][0]
+
+    cursor.close()
+    db.close()
+
+    # Getting the words collection
+    words_object = get_words_collection(nb_words, 1)
+
+    words = words_object["words"]
+
+    # Building the table rows from the query result
+    rows = ""
+    for word in words:
+        word_definitions = ""
+        for definition in word["definitions"]:
+            word_definitions+=definition + ", "
+
+        rows += f"""
+        <tr>
+            <td>{word["Id"]}</td>
+            <td>{word["Lg"]}</td>
+            <td>{word["source"]}</td>
+            <td>{word["Word"]}</td>
+            <td>{word_definitions}</td>
+        </tr>
+        """
+    
+    # HTML template with DataTables integration
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Definitions DataTable</title>
+            <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/2.2.2/css/dataTables.dataTables.min.css"
+    />
+    </head>
+    <body>
+        <h1>Definitions</h1>
+        <table id="definitionsTable" class="display">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>language</th>
+                    <th>source</th>
+                    <th>word</th>
+                    <th>definitions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {rows}
+            </tbody>
+        </table>
+
+        <!-- DataTables JS -->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+        <script src="https://cdn.datatables.net/2.2.2/js/dataTables.min.js"></script>
+
+        <!-- Initialize DataTable -->
+        <script>
+        document.addEventListener("DOMContentLoaded", function () {{
+            new DataTable("#definitionsTable");
+        }});
+        </script>
+    </body>
+    </html>
+    """
+
+    return html_content
+
+# 4 : Documentation in an HTML page
+@app.route("/doc")
+def display_documentation():
+    return "documentation"
 
 if __name__ == "__main__":
     app.run(debug=True)
