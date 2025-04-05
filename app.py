@@ -319,7 +319,7 @@ def dispaly_definitions_datatables(step):
         </tr>
         """
     
-    # HTML template with DataTables integration
+    # HTML to display the data in a datatable
     html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
@@ -356,7 +356,9 @@ def dispaly_definitions_datatables(step):
         <!-- Initialize DataTable -->
         <script>
         document.addEventListener("DOMContentLoaded", function () {{
-            new DataTable("#definitionsTable");
+            new DataTable("#definitionsTable", {{
+                "pageLength": {step}  // Number of rows per page
+            }});
         }});
         </script>
     </body>
@@ -368,7 +370,61 @@ def dispaly_definitions_datatables(step):
 # 4 : Documentation in an HTML page
 @app.route("/doc")
 def display_documentation():
-    return "documentation"
+
+    # Defining all the rules in an array
+    routes = [
+        {'endpoint': 'home', 'methods': 'GET', 'url': '/'},
+        {'endpoint': 'show_player_stats', 'methods': 'GET', 'url': '/gamers/<joueur>'},
+        {'endpoint': 'add_player', 'methods': 'GET', 'url': '/gamers/add/<joueur>/<pwd>'},
+        {'endpoint': 'login', 'methods': 'GET', 'url': '/gamers/login/<joueur>/<pwd>'},
+        {'endpoint': 'logout', 'methods': 'GET', 'url': '/gamers/logout/<joueur>/<pwd>'},
+        {'endpoint': 'list_top_players', 'methods': 'GET', 'url': '/admin/top'},
+        {'endpoint': 'delete_player', 'methods': 'GET', 'url': '/admin/delete/joueur/<joueur>'},
+        {'endpoint': 'delete_definition', 'methods': 'GET', 'url': '/admin/delete/def/<id>'},
+        {'endpoint': 'get_words_collection', 'methods': 'GET', 'url': '/word'},
+        {'endpoint': 'get_HTML_game', 'methods': 'GET', 'url': '/jeu/word/'},
+        {'endpoint': 'add_definition_game', 'methods': 'GET', 'url': '/jeu/def'},
+        {'endpoint': 'dispaly_definitions_datatables', 'methods': 'GET', 'url': '/dump'},
+        {'endpoint': 'display_documentation', 'methods': 'GET', 'url': '/doc'},
+    ]
+    
+
+    # Create HTML content with all routes
+    html_content = """
+    <html>
+    <head>
+        <title>API Documentation</title>
+    </head>
+    <body>
+        <h1>API Routes</h1>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Endpoint</th>
+                    <th>Methods</th>
+                    <th>URL</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+
+    for route in routes:
+        html_content += f"""
+        <tr>
+            <td>{route['endpoint']}</td>
+            <td>{route['methods']}</td>
+            <td><a href="{route['url']}">{route['url']}</a></td>
+        </tr>
+        """
+
+    html_content += """
+            </tbody>
+        </table>
+    </body>
+    </html>
+    """
+
+    return html_content
 
 if __name__ == "__main__":
     app.run(debug=True)
