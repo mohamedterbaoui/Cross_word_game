@@ -4,7 +4,7 @@ body {
 }
 
 .container {
-  width: 45%;
+  width: 70%;
   margin: auto;
   margin-top: 200px;
 }
@@ -12,6 +12,7 @@ body {
 .control-btns {
   display: flex;
   justify-content: center;
+  gap: 10px;
 }
 
 #play {
@@ -50,7 +51,7 @@ body {
   flex-direction: column;
   gap: 20px;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .profile {
@@ -71,15 +72,10 @@ body {
 
 .score {
   display: flex;
-  gap: 5px;
+  gap: 10px;
   flex-direction: row;
   justify-content: center;
   align-items: center;
-}
-
-.score > div:first-of-type {
-  padding: 3px 10px;
-  border: 1px solid grey;
 }
 
 .word {
@@ -91,8 +87,30 @@ body {
 }
 
 #answer {
-  padding: 6px 60px;
-  border: 1px solid gray;
+  min-width: 200px;
+}
+
+.letter-boxes {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.letter-box {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #4caf50;
+  border-radius: 4px;
+  font-size: 24px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.letter-box:focus {
+  outline: none;
+  border-color: #2196f3;
+  background-color: #e3f2fd;
 }
 
 .remaining-time {
@@ -101,20 +119,50 @@ body {
   align-items: center;
 }
 
+.suggestions-box {
+  border: 1px solid grey;
+  border-radius: 15px;
+  padding: 15px;
+}
+
 .suggestions {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 5px;
   justify-content: center;
   align-items: center;
   font-weight: 700;
+  max-height: 300px;
+  min-width: 100px;
 }
 
-.hints {
-  padding: 20px 20px 20px 0;
-  border: 1px solid grey;
+.suggestion-word {
+  padding: 5px 10px;
+  margin: 5px 0;
+  background-color: #f0f0f0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.hints ul {
-  list-style: square;
+.suggestion-word:hover {
+  background-color: #e0e0e0;
+}
+
+.score-bar {
+  width: 100%;
+  min-width: 100px;
+  height: 20px;
+  background-color: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 5px 0;
+}
+
+.score-fill {
+  height: 100%;
+  background-color: #4caf50;
+  width: 100%;
+  transition: width 0.3s ease-in-out;
 }

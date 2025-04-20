@@ -2,11 +2,14 @@ from flask import Flask
 from flask import jsonify
 from flask import url_for
 from flask import request
+from flask_cors import CORS
 
+import re
 import mysql.connector
 import hashlib, uuid
 
 app = Flask(__name__)
+CORS(app)
 
 # Dictionary to store active sessions 
 sessions = {}
@@ -31,9 +34,9 @@ def home():
 @app.route("/gamers/<joueur>")
 def show_player_stats(joueur):
     # Check if player is logged in before showing the stats
-    token = request.args.get("token")
-    if not token or token not in sessions:
-        return "login to access player stats"
+    # token = request.args.get("token")
+    # if not token or token not in sessions:
+    #     return "login to access player stats"
     
     db = get_db_connection()
     cursor = db.cursor()
@@ -44,11 +47,11 @@ def show_player_stats(joueur):
 
     if (player_info):
         player_stats = {
-            "1.username" : player_info[0],
-            "2.games_played" : player_info[1],
-            "3.games_won" : player_info[2],
-            "4.score" : player_info[3],
-            "5.last_login" : player_info[4]
+            "username" : player_info[0],
+            "games_played" : player_info[1],
+            "games_won" : player_info[2],
+            "score" : player_info[3],
+            "last_login" : player_info[4]
         }
     else :
         player_stats = "Player does not exist"
@@ -140,6 +143,57 @@ def logout(joueur, pwd):
     # Otherwise delete token
     del sessions[token]
     return "Player logged out successfully"
+
+# Route to update score of a player
+@app.route('/gamers/update_score', methods=['POST'])
+def update_score():
+    data = request.json
+    
+    if not data or 'username' not in data or 'score' not in data:
+        return jsonify({'error': 'Missing required fields'}), 400
+    
+    username = data['username']
+    game_score = data['score']
+    
+    try:
+        # Get database connection
+        db = get_db_connection()
+        cursor = db.cursor()
+        
+        # First get the current score for the player
+        cursor.execute("SELECT id, score FROM players WHERE username = %s", (username,))
+        result = cursor.fetchone()
+        
+        if not result:
+            return jsonify({'error': 'User not found'}), 404
+        
+        player_id, current_score = result
+        
+        # Calculate new total score
+        new_total_score = current_score + game_score
+        
+        # Update the player's score
+        cursor.execute("UPDATE players SET score = %s WHERE id = %s", (new_total_score, player_id))
+        db.commit()
+        
+        # Return the updated score information
+        return jsonify({
+            'message': 'Score updated successfully',
+            'username': username,
+            'game_score': game_score,
+            'total_score': new_total_score
+        }), 200
+        
+    except Exception as e:
+        if db:
+            db.rollback()
+        return jsonify({'error': str(e)}), 500
+    
+    finally:
+        if cursor:
+            cursor.close()
+        if db:
+            db.close()
 
 
 # B : Consultation admin
@@ -241,6 +295,48 @@ def get_words_collection(nb, from_index):
     db.close()
     return {"words": arrayOfWords}
 
+# Count the total number of words in our db
+@app.route("/word/count")
+def count_words():
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT COUNT(DISTINCT id) FROM words")
+
+    word_count = cursor.fetchone()
+
+    cursor.close()
+    db.close()
+
+    return {"word_count" : word_count[0]}
+
+# Get words that match the pattern
+@app.route("/word/suggestions/<pattern>")
+def get_suggestions(pattern):
+    regex_pattern = pattern.replace("_", ".").lower()
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Only fetch words of same length
+        cursor.execute("SELECT word FROM words WHERE CHAR_LENGTH(word) = %s", (len(pattern),))
+        rows = cursor.fetchall()
+
+        # Filter using regex in Python
+        suggestions = [row["word"] for row in rows if re.match(f"^{regex_pattern}$", row["word"].lower())]
+
+        return jsonify({"words": suggestions})
+    
+    except mysql.connector.Error as err:
+        return jsonify({"error": str(err)}), 500
+    
+    finally:
+        if conn.is_connected():
+            cursor.close()
+            conn.close()
+
+
 # D : Page web
 # 1 : Display HTML Game
 @app.route("/jeu/word/", defaults={"time":60, "lg":"en", "hint":10})
@@ -255,24 +351,147 @@ def get_HTML_game(time, lg, hint):
     # link of the js file
     js_url = url_for('static', filename='script.js')
 
+    # link for the images
+    avatar_url = url_for('static', filename='img/avatar.png')
+    clock_url = url_for('static', filename='img/clock.png')
+    hint_url = url_for('static', filename='img/hint.png')
+    trophy_url = url_for('static', filename='img/trophy.png')
+
     html_content = f"""
     <html>
         <head>
-            <title>Game</title>
+            <meta charset="UTF-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <title>Guess the Word Game</title>
             <link rel="stylesheet" href="{css_url}">
         </head>
         <body>
-            <h1 class="header">Guess the Word Game</h1>
-            <p>Language: {lg}</p>
-            <p>Time: {time} seconds</p>
-            <p>Hint Interval: {hint} seconds</p>
-            <!-- Other game HTML and JS code -->
+            <div class="container">
+            <div class="control-btns">
+                <button id="play">Play</button>
+                <input
+                type="text"
+                id="username"
+                placeholder="Enter your username"
+                required
+                />
+            </div>
+            <div class="game-window">
+                <div class="stats">
+                <div class="profile">
+                    <div><img src="{avatar_url}" alt="profile_picture" /></div>
+                    <h3>username</h3>
+                </div>
+                <div class="total-score">
+                    <div><img src="{trophy_url}" alt="trophy icon" /></div>
+                    <div id="total-score">Total score</div>
+                </div>
+                <div class="score">
+                    <div class="score-label"></div>
+                    <div class="score-bar">
+                    <div class="score-fill" id="score-fill"></div>
+                    </div>
+                    <div id="points">60</div>
+                </div>
+                </div>
+                <div class="word">
+                <div id="word-description">word description</div>
+                <div id="answer">
+                    <div class="letter-boxes">
+                    <input type="text" class="letter-box" maxlength="1" />
+                    <input type="text" class="letter-box" maxlength="1" />
+                    <input type="text" class="letter-box" maxlength="1" />
+                    <input type="text" class="letter-box" maxlength="1" />
+                    <input type="text" class="letter-box" maxlength="1" />
+                    <input type="text" class="letter-box" maxlength="1" />
+                    </div>
+                </div>
+                <div class="remaining-time">
+                    <div><img src="{clock_url}" alt="clock_icon" /></div>
+                    <div>time text</div>
+                    <div id="hint-icon" style="visibility: hidden">
+                    <img src="{hint_url}" alt="hint_icon" />
+                    </div>
+                </div>
+                </div>
+                <div class="suggestions-box" style="visibility: hidden">
+                <h4>suggestions:</h4>
+                <div class="suggestions" style="visibility: hidden"></div>
+                </div>
+            </div>
+            </div>
         </body>
+
+        <script>
+            const GAME_CONFIG = {{
+                time: {time},
+                lang: "{lg}",
+                hintInterval: {hint}
+            }};
+        </script>
         <script src="{js_url}"></script>
     </html>
     """
 
     return html_content
+
+# add definition to the db
+@app.route("/word/add_definition", methods=["POST"])
+def add_definition():
+    data = request.json
+    word = data.get("word")
+    definition = data.get("definition")
+    player = data.get("player")
+
+    if not all([word, definition, player]):
+        return jsonify({"error": "Missing fields"}), 400
+
+    # Check constraints
+    if len(definition) < 5 or len(definition) > 200:
+        return jsonify({"error": "Definition must be between 5 and 200 characters"}), 400
+
+    db = get_db_connection()
+    cursor = db.cursor()
+
+    # Step 1: Check if player exists
+    cursor.execute("SELECT username FROM players WHERE username = %s", (player,))
+    player_exists = cursor.fetchone()
+
+    if not player_exists:
+        cursor.close()
+        db.close()
+        return jsonify({"error": "Player does not exist"}), 400
+
+    # Step 2: Get word_id
+    cursor.execute("SELECT id FROM words WHERE Word = %s", (word,))
+    word_result = cursor.fetchone()
+
+    if not word_result:
+        cursor.close()
+        db.close()
+        return jsonify({"error": "Word not found"}), 400
+
+    word_id = word_result[0]
+
+    # Step 3: Check if definition already exists
+    cursor.execute("SELECT id FROM definitions WHERE word_id = %s AND definition = %s", (word_id, definition))
+    if cursor.fetchone():
+        cursor.close()
+        db.close()
+        return jsonify({"error": "Definition already exists"}), 400
+
+    # Step 4: Insert the definition
+    cursor.execute(
+        "INSERT INTO definitions (word_id, source, definition) VALUES (%s, %s, %s)",
+        (word_id, player, definition)
+    )
+    db.commit()
+
+    cursor.close()
+    db.close()
+
+    return jsonify({"success": True, "message": "Definition added successfully", "points": 5})
+
 
 # 2 : Add definition game
 @app.route("/jeu/def", defaults={"lg":"en", "time":60})
@@ -280,7 +499,35 @@ def get_HTML_game(time, lg, hint):
 @app.route("/jeu/def/<lg>/<int:time>")
 def add_definition_game(lg, time):
 
-    return "Hello"
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="{lg}">
+    <head>
+        <meta charset="UTF-8">
+        <title>Definition Game</title>
+        <link rel="stylesheet" href="{url_for('static', filename='style1.css')}">
+    </head>
+    <body>
+        <div id="game-container">
+            <p>Language: {lg}</p>
+            <p>Time: {time} seconds</p>
+            <div id="word-display">Loading word...</div>
+            <form id="definition-form">
+                <input type="text" id="definition-input" placeholder="Your definition..." required>
+                <input type="text" id="player-name" placeholder="Username" required>
+                <button type="submit">Submit</button>
+            </form>
+            <div id="messages"></div>
+        </div>
+        <script src="{url_for('static', filename='script1.js')}"></script>
+        <script>const CONFIG = {{
+        time : {time},
+        lang : "{lg}"
+        }}</script>
+    </body>
+    </html>
+    """
+    return html_content
 
 # 3 : Display definitions using DataTables
 @app.route("/dump", defaults={"step":10})
