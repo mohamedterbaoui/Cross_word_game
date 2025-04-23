@@ -3,6 +3,8 @@ from flask import jsonify
 from flask import url_for
 from flask import request
 from flask_cors import CORS
+from dotenv import load_dotenv
+load_dotenv()
 
 import re
 import mysql.connector
