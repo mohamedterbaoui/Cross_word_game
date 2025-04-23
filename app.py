@@ -7,6 +7,7 @@ from flask_cors import CORS
 import re
 import mysql.connector
 import hashlib, uuid
+import os
 
 app = Flask(__name__)
 CORS(app)
@@ -17,10 +18,10 @@ sessions = {}
 # Function to get a new connection to the database
 def get_db_connection():
     connection = mysql.connector.connect(
-        host="HOST_NAME",
-        user="USER_NAME",
-        password="USER_PASSWORD",
-        database="DB_NAME"
+    host=os.getenv("DB_HOST"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    database=os.getenv("DB_NAME")
     )
     return connection
 
@@ -677,4 +678,5 @@ def display_documentation():
     return html_content
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
