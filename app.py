@@ -3,29 +3,33 @@ from flask import jsonify
 from flask import url_for
 from flask import request
 from flask_cors import CORS
+import os
 from dotenv import load_dotenv
-load_dotenv()
 
 import re
 import mysql.connector
 import hashlib, uuid
-import os
+
 
 app = Flask(__name__)
 CORS(app)
+
+load_dotenv()
 
 # Dictionary to store active sessions 
 sessions = {}
 
 # Function to get a new connection to the database
 def get_db_connection():
+    
     connection = mysql.connector.connect(
-    host=os.getenv("DB_HOST"),
-    user=os.getenv("DB_USER"),
-    password=os.getenv("DB_PASSWORD"),
+    host=os.getenv("HOST_NAME"),
+    user=os.getenv("USER_NAME"),
+    password=os.getenv("USER_PASSWORD"),
     database=os.getenv("DB_NAME"),
     port=int(os.getenv("DB_PORT", 3306))
     )
+
     return connection
 
 # Home Route
