@@ -17,10 +17,10 @@ sessions = {}
 # Function to get a new connection to the database
 def get_db_connection():
     connection = mysql.connector.connect(
-        host="localhost",
-        user="mohamed",
-        password="mypassword",
-        database="cross_word"
+        host="HOST_NAME",
+        user="USER_NAME",
+        password="USER_PASSWORD",
+        database="DB_NAME"
     )
     return connection
 
