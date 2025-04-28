@@ -10,9 +10,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let timeLeft = CONFIG.time;
 
+  const hostURL = "https://cross-word-game.onrender.com/";
+
   async function getRandomWord(language) {
     // Getting the number of total words in the DB
-    const totalWordsResponse = await fetch("http://localhost:5000/word/count");
+    const totalWordsResponse = await fetch(hostURL + "word/count");
     const totalWords = await totalWordsResponse.json();
 
     let randomWord = null;
@@ -21,9 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
     while (!randomWord || randomWord.Lg !== language.toLowerCase()) {
       const randomIndex = Math.floor(Math.random() * totalWords.word_count) + 1;
 
-      const response = await fetch(
-        `http://localhost:5000/word/1/${randomIndex}`
-      );
+      const response = await fetch(hostURL + `word/1/${randomIndex}`);
       const data = await response.json();
 
       randomWord = data.words[0];
@@ -57,19 +57,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function updatePlayerScore(playerName, scoreToAdd) {
     try {
-      const response = await fetch(
-        "http://localhost:5000/gamers/update_score",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username: playerName,
-            score: scoreToAdd,
-          }),
-        }
-      );
+      const response = await fetch(hostURL + "gamers/update_score", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: playerName,
+          score: scoreToAdd,
+        }),
+      });
 
       const result = await response.json();
       if (response.ok) {

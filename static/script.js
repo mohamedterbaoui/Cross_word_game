@@ -13,11 +13,14 @@ let pointPerReveal;
 let revealedLetters = new Set();
 let wordToGuess = "";
 let pointsDeducted = false;
+
+const hostURL = "https://cross-word-game.onrender.com/";
+
 playBtn.addEventListener("click", startGame);
 
 async function getRandomWord(language) {
   // Getting the number of total words in the DB
-  const totalWordsResponse = await fetch("http://localhost:5000/word/count");
+  const totalWordsResponse = await fetch(hostURL + "word/count");
   const totalWords = await totalWordsResponse.json();
 
   let randomWord = null;
@@ -26,7 +29,7 @@ async function getRandomWord(language) {
   while (!randomWord || randomWord.Lg !== language.toLowerCase()) {
     const randomIndex = Math.floor(Math.random() * totalWords.word_count) + 1;
 
-    const response = await fetch(`http://localhost:5000/word/1/${randomIndex}`);
+    const response = await fetch(hostURL + `word/1/${randomIndex}`);
     const data = await response.json();
 
     randomWord = data.words[0];
@@ -37,7 +40,7 @@ async function getRandomWord(language) {
 }
 
 async function getPlayerStats(username) {
-  const response = await fetch(`http://localhost:5000/gamers/${username}`);
+  const response = await fetch(hostURL + `gamers/${username}`);
   const data = await response.json();
   return data;
 }
@@ -268,9 +271,7 @@ async function updateSuggestion() {
     }
   });
 
-  const response = await fetch(
-    `http://localhost:5000/word/suggestions/${pattern}`
-  );
+  const response = await fetch(hostURL + `word/suggestions/${pattern}`);
   const data = await response.json();
 
   const suggestionBox = document.querySelector(".suggestions");
@@ -377,7 +378,7 @@ async function updatePlayerScore(playerUsername) {
     const finalScore = calculateFinalScore();
 
     // Send the updated score to the server
-    const response = await fetch(`http://localhost:5000/gamers/update_score`, {
+    const response = await fetch(hostURL + `gamers/update_score`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
