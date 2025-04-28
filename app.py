@@ -269,39 +269,44 @@ def delete_definition(id):
 
 
 # C : Consultation des definitions
-@app.route("/word", defaults={"nb":10, "from_index":1})
-@app.route("/word/<int:nb>", defaults={"from_index":1})
+@app.route("/word", defaults={"nb": 10, "from_index": 1})
+@app.route("/word/<int:nb>", defaults={"from_index": 1})
 @app.route("/word/<int:nb>/<int:from_index>")
 def get_words_collection(nb, from_index):
     db = get_db_connection()
     cursor = db.cursor()
 
     offset = from_index - 1
-    cursor.execute("SELECT * FROM words LIMIT %s OFFSET %s", (nb, offset))
+
+    # Join words and definitions in one query
+    cursor.execute("""
+        SELECT w.id, w.lg, w.word, d.definition, d.source
+        FROM words w
+        LEFT JOIN definitions d ON w.id = d.word_id
+        ORDER BY w.id
+        LIMIT %s OFFSET %s
+    """, (nb, offset))
+
     result = cursor.fetchall()
 
-    arrayOfWords = []
+    # Group definitions under their corresponding word
+    word_dict = {}
+    for row in result:
+        word_id, lg, word_text, definition, source = row
+        if word_id not in word_dict:
+            word_dict[word_id] = {
+                "Id": word_id,
+                "Lg": lg,
+                "Word": word_text,
+                "definitions": [],
+                "source": []
+            }
+        if definition:  # In case there is no definition
+            word_dict[word_id]["definitions"].append(definition)
+            word_dict[word_id]["source"].append(source)
 
-    for res in result:
-        cursor.execute("SELECT definition, source FROM definitions WHERE word_id = %s", (res[0],))
-        definitions = cursor.fetchall()
-
-        definition_list = [definition[0] for definition in definitions]
-        sources_list = [definition[1] for definition in definitions]
-
-        word = {
-            "Id": res[0],
-            "Lg": res[1],
-            "Word": res[2],
-            "definitions": definition_list,
-            "source": sources_list
-        }
-        
-        arrayOfWords.append(word)
-
-    cursor.close()
     db.close()
-    return {"words": arrayOfWords}
+    return {"words": list(word_dict.values())}
 
 # Count the total number of words in our db
 @app.route("/word/count")
