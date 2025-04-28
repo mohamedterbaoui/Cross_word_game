@@ -14,14 +14,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function getRandomWord(language) {
     // Getting the number of total words in the DB
-    const totalWordsResponse = await fetch(hostURL + "word/count");
-    const totalWords = await totalWordsResponse.json();
+    // const totalWordsResponse = await fetch(hostURL + "word/count");
+    const totalWords = 7100;
 
     let randomWord = null;
 
     // Loop to ensure the selected word matches the language
     while (!randomWord || randomWord.Lg !== language.toLowerCase()) {
-      const randomIndex = Math.floor(Math.random() * totalWords.word_count) + 1;
+      const randomIndex = Math.floor(Math.random() * totalWords) + 1;
 
       const response = await fetch(hostURL + `word/1/${randomIndex}`);
       const data = await response.json();
