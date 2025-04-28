@@ -29,6 +29,8 @@ async function getRandomWord(language) {
   while (!randomWord || randomWord.Lg !== language.toLowerCase()) {
     const randomIndex = Math.floor(Math.random() * totalWords.word_count) + 1;
 
+    console.log(randomIndex);
+
     const response = await fetch(hostURL + `word/1/${randomIndex}`);
     const data = await response.json();
 

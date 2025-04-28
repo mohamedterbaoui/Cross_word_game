@@ -254,17 +254,26 @@ def delete_definition(id):
     cursor = db.cursor()
 
     # Delete definition
-    cursor.execute("DELETE FROM definitions WHERE id = %s", (id,))
+    if isinstance(id, (int, float)):
+        cursor.execute("DELETE FROM definitions WHERE id = %s", (id,))
+        db.commit()
 
-    db.commit()
+        cursor.close()
+        db.close()
 
-    cursor.close()
-    db.close()
+        return {
+            "message":"definition deleted successfully",
+            "definition_id": id
+        }
+    
+    else:
+        cursor.close()
+        db.close()
+        return {
+            "message":"Please enter a valid definition id",
+            "definition_id": id
+        }
 
-    return {
-        "message":"definition deleted successfully",
-        "definition_id": id
-    }
 
 
 
