@@ -20,8 +20,8 @@ playBtn.addEventListener("click", startGame);
 
 async function getRandomWord(language) {
   // Getting the number of total words in the DB
-  const totalWordsResponse = await fetch(hostURL + "word/count");
-  const totalWords = await totalWordsResponse.json();
+  // const totalWordsResponse = await fetch(hostURL + "word/count");
+  const totalWords = 7100;
 
   let randomWord = null;
 
