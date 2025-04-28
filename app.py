@@ -280,7 +280,7 @@ def get_words_collection(nb, from_index):
 
     # Join words and definitions in one query
     cursor.execute("""
-        SELECT w.id, w.lg, w.word, d.definition, d.source
+        SELECT w.id, w.lang, w.word, d.definition, d.source
         FROM words w
         LEFT JOIN definitions d ON w.id = d.word_id
         ORDER BY w.id
@@ -292,11 +292,11 @@ def get_words_collection(nb, from_index):
     # Group definitions under their corresponding word
     word_dict = {}
     for row in result:
-        word_id, lg, word_text, definition, source = row
+        word_id, lang, word_text, definition, source = row
         if word_id not in word_dict:
             word_dict[word_id] = {
                 "Id": word_id,
-                "Lg": lg,
+                "Lg": lang,
                 "Word": word_text,
                 "definitions": [],
                 "source": []
