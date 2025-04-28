@@ -278,14 +278,23 @@ def get_words_collection(nb, from_index):
 
     offset = from_index - 1
 
-    # Join words and definitions in one query
-    cursor.execute("""
-        SELECT w.id, w.lang, w.word, d.definition, d.source
-        FROM words w
-        LEFT JOIN definitions d ON w.id = d.word_id
-        ORDER BY w.id
-        LIMIT %s OFFSET %s
-    """, (nb, offset))
+    if (nb == -1):
+        # Get all the entries for dump datatable
+        cursor.execute("""
+            SELECT w.id, w.lang, w.word, d.definition, d.source
+            FROM words w
+            LEFT JOIN definitions d ON w.id = d.word_id
+            ORDER BY w.id"""
+            )
+    else :
+        # Join words and definitions in one query ( use nb and offset )
+        cursor.execute("""
+            SELECT w.id, w.lang, w.word, d.definition, d.source
+            FROM words w
+            LEFT JOIN definitions d ON w.id = d.word_id
+            ORDER BY w.id
+            LIMIT %s OFFSET %s
+        """, (nb, offset))
 
     result = cursor.fetchall()
 
@@ -546,18 +555,9 @@ def add_definition_game(lg, time):
 @app.route("/dump", defaults={"step":10})
 @app.route("/dump/<step>")
 def dispaly_definitions_datatables(step):
-    db = get_db_connection()
-    cursor = db.cursor()
-
-    # Get number of rows of words table
-    cursor.execute("SELECT COUNT(*) FROM words")
-    nb_words = cursor.fetchall()[0][0]
-
-    cursor.close()
-    db.close()
 
     # Getting the words collection
-    words_object = get_words_collection(nb_words, 1)
+    words_object = get_words_collection(-1, 1)
 
     words = words_object["words"]
 
