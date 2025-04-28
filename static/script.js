@@ -27,7 +27,7 @@ async function getRandomWord(language) {
 
   // Loop to ensure the selected word matches the language
   while (!randomWord || randomWord.Lg !== language.toLowerCase()) {
-    const randomIndex = Math.floor(Math.random() * totalWords.word_count) + 1;
+    const randomIndex = Math.floor(Math.random() * totalWords) + 1;
 
     console.log(randomIndex);
 
